@@ -1,22 +1,35 @@
-use image::GenericImageView;
-use image::imageops::FilterType;
+use std::thread;
+use std::sync::Arc;
 mod lib;
 use lib::resolution::TargetResolution;
-use lib::calculate::crop_resolution;
+use lib::image_proc::rescale;
 
 fn main() {
-    let target_resolution = TargetResolution::new(30, 30);
+    let target_resolutions: [TargetResolution; 4] = [
+        TargetResolution::new(30, 1101023),
+        TargetResolution::new(1430, 30),
+        TargetResolution::new(20, 530),
+        TargetResolution::new(1300, 700),
+    ];
 
-    let file_name = "another";
+    let file_name = "another".to_string();
     let file_path = format!(".test/input/{}.jpg", file_name);
-    let original_img = image::open(file_path).unwrap();
+    let img = image::open(file_path).unwrap();
 
-    let crop_resolution = crop_resolution(original_img.dimensions(), &target_resolution);
+    let file_name_arc = Arc::new(file_name);
+    let img_arc = Arc::new(img);
 
-    let cropped_img = original_img.crop_imm(crop_resolution.center_coords.0, crop_resolution.center_coords.1, crop_resolution.x, crop_resolution.y);
-    let resized_img = cropped_img.resize(target_resolution.x, target_resolution.y, FilterType::Gaussian);
+    let mut handles = vec![];
 
-    let target_file_name = format!("{}-{}x{}", file_name, target_resolution.x, target_resolution.y);
-    let target_file_path = format!(".test/output/{}.png", target_file_name);
-    resized_img.save(target_file_path).unwrap();
+    for resolution in target_resolutions {
+        let img_thread = Arc::clone(&img_arc);
+        let file_name_thread = Arc::clone(&file_name_arc);
+
+        handles.push(thread::spawn(move || {
+            rescale(&img_thread, resolution, &file_name_thread);
+        }));
+    }
+    for handle in handles {
+        handle.join().unwrap();
+    }
 }

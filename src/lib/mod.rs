@@ -1,2 +1,2 @@
 pub mod resolution;
-pub mod calculate;
+pub mod image_proc;
