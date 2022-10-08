@@ -1,14 +1,14 @@
-pub struct Resolution {
+pub struct TargetResolution {
     pub x: u32,
     pub y: u32,
     pub aspect_ratio: (u32, u32),
     pub aspect_ratio_float: f64,
 }
 
-impl Resolution {
-    pub fn new(x: u32, y: u32) -> Resolution {
+impl TargetResolution {
+    pub fn new(x: u32, y: u32) -> TargetResolution {
         let lowest_denominator = gcd(x, y);
-        Resolution {
+        TargetResolution {
             x: x,
             y: y,
             aspect_ratio: (x / lowest_denominator, y / lowest_denominator),
